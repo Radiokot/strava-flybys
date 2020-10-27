@@ -1,0 +1,42 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
+    }
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.4.10'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+group 'ua.com.radiokot'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+    implementation 'io.javalin:javalin:3.11.0'
+    implementation 'org.slf4j:slf4j-log4j12:1.7.29'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'ua.com.radiokot.flybys.Main'
+        )
+    }
+}
+
+shadowJar {
+    minimize {
+        exclude(dependency('org.eclipse.jetty.websocket:.*:.*'))
+    }
+    archiveFileName = 'server.jar'
+}
