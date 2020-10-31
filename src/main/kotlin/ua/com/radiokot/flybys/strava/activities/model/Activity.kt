@@ -9,7 +9,13 @@ data class Activity(
         val id: String,
         val name: String,
         val athlete: Athlete,
+        /**
+         * UNIX timestamp of activity start in it's local timezone
+         */
         val startedAtLocal: Long,
+        /**
+         * UNIX timestamp of activity end in it's local timezone
+         */
         val endedAtLocal: Long,
         val locationTimeStream: List<LocationTimePoint>,
         val segmentEfforts: List<SegmentEffort>
