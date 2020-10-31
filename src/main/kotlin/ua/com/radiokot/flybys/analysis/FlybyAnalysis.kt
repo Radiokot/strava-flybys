@@ -32,7 +32,7 @@ class FlybyAnalysis(
                 .filterNot { it == activity.id }
                 .toSet()
 
-        Logger.getGlobal().log(Level.INFO, "Have to load ${activityToLoadIds.size} " +
+        Logger.getGlobal().log(Level.INFO, "Have to load ${activityToLoadIds.size} activities" +
                 "that are possible Flybys")
 
         val activitiesToCheck = activityToLoadIds
