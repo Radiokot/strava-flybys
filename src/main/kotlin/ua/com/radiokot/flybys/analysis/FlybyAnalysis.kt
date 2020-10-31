@@ -3,12 +3,15 @@ package ua.com.radiokot.flybys.analysis
 import ua.com.radiokot.flybys.analysis.model.ActivityFlyby
 import ua.com.radiokot.flybys.strava.activities.ActivitiesService
 import ua.com.radiokot.flybys.strava.activities.model.Activity
+import ua.com.radiokot.flybys.strava.segments.LeaderboardsService
+import ua.com.radiokot.flybys.strava.segments.model.LeaderboardResult
 import ua.com.radiokot.flybys.strava.segments.model.SegmentEffort
 import java.util.logging.Level
 import java.util.logging.Logger
 
 class FlybyAnalysis(
         private val activitiesService: ActivitiesService,
+        private val leaderboardsService: LeaderboardsService,
 ) {
     fun getActivityFlybys(activity: Activity): List<ActivityFlyby> {
         Logger.getGlobal().log(Level.INFO, "Starting Flyby analysis of activity ${activity.id}...")
@@ -19,6 +22,33 @@ class FlybyAnalysis(
                 .toSet()
 
         Logger.getGlobal().log(Level.INFO, "Have to load ${coverageSegmentIds.size} leaderboards")
+
+        val leaderboardResults = coverageSegmentIds
+                .map(leaderboardsService::getTodaySegmentLeaderboard)
+                .flatten()
+        val activityToLoadIds = leaderboardResults
+                .map(LeaderboardResult::activityId)
+                .filterNot { it == activity.id }
+                .toSet()
+
+        Logger.getGlobal().log(Level.INFO, "Have to load ${activityToLoadIds.size} " +
+                "that are possible Flybys")
+
+        val activitiesToCheck = activityToLoadIds
+                .map { activityId ->
+                    activitiesService.getById(
+                            activityId = activityId,
+                            includeSegmentEfforts = false
+                    )
+                }
+                .filter { loadedActivity ->
+                    // Skip activities with time mismatch for now.
+                    loadedActivity.endedAtLocal > activity.startedAtLocal
+                            && loadedActivity.startedAtLocal < activity.endedAtLocal
+                }
+
+        Logger.getGlobal().log(Level.INFO, "Have to check ${activitiesToCheck.size} activities, " +
+                " ${activityToLoadIds.size - activitiesToCheck.size} filtered out")
 
         return emptyList()
     }

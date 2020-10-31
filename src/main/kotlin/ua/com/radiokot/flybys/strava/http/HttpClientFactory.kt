@@ -35,7 +35,7 @@ class HttpClientFactory(
                         }
 
                         addInterceptor(HttpLoggingInterceptor(logger).apply {
-                            setLevel(HttpLoggingInterceptor.Level.BODY)
+                            setLevel(HttpLoggingInterceptor.Level.HEADERS)
                         })
                     }
                 }
