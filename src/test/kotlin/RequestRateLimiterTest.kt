@@ -1,6 +1,6 @@
 import org.junit.Assert
 import org.junit.Test
-import ua.com.radiokot.flybys.strava.RequestRateLimiter
+import ua.com.radiokot.flybys.strava.http.RequestRateLimiter
 import kotlin.math.roundToInt
 
 class RequestRateLimiterTest {

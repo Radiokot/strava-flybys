@@ -1,4 +1,4 @@
-package ua.com.radiokot.flybys.strava
+package ua.com.radiokot.flybys.strava.http
 
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CountDownLatch
