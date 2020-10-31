@@ -9,7 +9,9 @@ import ua.com.radiokot.flybys.strava.http.FakeHeaders
 import ua.com.radiokot.flybys.strava.http.RequestRateLimiter
 import ua.com.radiokot.flybys.strava.http.addHeaders
 import ua.com.radiokot.flybys.strava.session.StravaSession
+import ua.com.radiokot.flybys.strava.streams.exceptions.StreamNotFoundException
 import ua.com.radiokot.flybys.strava.streams.model.LocationTimePoint
+import java.net.HttpURLConnection
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -32,6 +34,10 @@ class RealStreamsService(
 
         RequestRateLimiter.awaitForRequest()
         val response = httpClient.newCall(request).execute()
+
+        if (response.code == HttpURLConnection.HTTP_NOT_FOUND) {
+            throw StreamNotFoundException(activityId)
+        }
 
         val rawJson = objectMapper.readTree(response.body!!.charStream())
         response.body?.closeQuietly()
