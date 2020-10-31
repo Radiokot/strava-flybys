@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.internal.closeQuietly
 import ua.com.radiokot.flybys.strava.http.FakeHeaders
 import ua.com.radiokot.flybys.strava.http.RequestRateLimiter
 import ua.com.radiokot.flybys.strava.http.addHeaders
@@ -34,6 +35,7 @@ class RealLeaderboardsService(
         val response = httpClient.newCall(request).execute()
 
         val rawJson = objectMapper.readTree(response.body!!.charStream())
+        response.body?.closeQuietly()
         val topResults = rawJson["top_results"]
 
         return topResults

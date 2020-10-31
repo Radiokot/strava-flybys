@@ -5,6 +5,7 @@ import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.internal.closeQuietly
 import ua.com.radiokot.flybys.strava.http.FakeHeaders
 import ua.com.radiokot.flybys.strava.http.RequestRateLimiter
 import ua.com.radiokot.flybys.strava.http.addHeaders
@@ -64,6 +65,7 @@ class RealStravaSession(
 
         RequestRateLimiter.awaitForRequest()
         val response = httpClient.newCall(request).execute()
+        response.body?.closeQuietly()
 
         val responseCode = response.code
         check(responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {

@@ -62,6 +62,7 @@ class FlybyAnalysis(
                                 nearbyPointIndices = nearbyPoints,
                                 correlationPercent = (nearbyPoints.size.toDouble() * 100 / activity.locationTimeStream.size)
                                         .roundToInt()
+                                        .coerceAtLeast(1)
                         )
                     } else {
                         null
