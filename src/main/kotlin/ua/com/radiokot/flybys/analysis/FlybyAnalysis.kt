@@ -49,7 +49,7 @@ class FlybyAnalysis(
                 }
 
         Logger.getGlobal().log(Level.INFO, "Have to check ${activitiesToCheck.size} activities, " +
-                " ${activityToLoadIds.size - activitiesToCheck.size} filtered out")
+                "${activityToLoadIds.size - activitiesToCheck.size} filtered out")
 
         val flybys = activitiesToCheck
                 .mapNotNull { activityToCheck ->
