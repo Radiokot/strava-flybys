@@ -71,9 +71,18 @@ class RealActivitiesService(
                     emptyList()
                 }
 
+        val nameRegex = "activity-name'>(.+?)\\s?<".toRegex()
+        var name = "---"
+        try {
+            name = nameRegex.find(rawHtml)!!
+                    .groupValues[1]
+        } catch (_: Exception) {
+            Logger.getGlobal().log(Level.WARNING, "Unable to get name from activity $activityId HTML")
+        }
+
         return Activity(
                 id = activityId,
-                name = "",
+                name = name,
                 startedAtLocal = startedAtLocal,
                 endedAtLocal = stream.last().getAbsoluteTime(startedAtLocal),
                 locationTimeStream = stream,
