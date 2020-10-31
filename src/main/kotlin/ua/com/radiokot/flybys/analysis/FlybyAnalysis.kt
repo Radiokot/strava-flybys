@@ -8,6 +8,7 @@ import ua.com.radiokot.flybys.strava.segments.model.LeaderboardResult
 import ua.com.radiokot.flybys.strava.segments.model.SegmentEffort
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.math.roundToInt
 
 class FlybyAnalysis(
         private val activitiesService: ActivitiesService,
@@ -50,6 +51,25 @@ class FlybyAnalysis(
         Logger.getGlobal().log(Level.INFO, "Have to check ${activitiesToCheck.size} activities, " +
                 " ${activityToLoadIds.size - activitiesToCheck.size} filtered out")
 
-        return emptyList()
+        val flybys = activitiesToCheck
+                .mapNotNull { activityToCheck ->
+                    val nearbyPoints = NearbyStreamPointsFinder
+                            .findNearbyStreamPoints(activity, activityToCheck)
+
+                    if (nearbyPoints.isNotEmpty()) {
+                        ActivityFlyby(
+                                activity = activityToCheck,
+                                nearbyPointIndices = nearbyPoints,
+                                correlationPercent = (nearbyPoints.size.toDouble() * 100 / activity.locationTimeStream.size)
+                                        .roundToInt()
+                        )
+                    } else {
+                        null
+                    }
+                }
+
+        Logger.getGlobal().log(Level.INFO, "Found ${flybys.size} Flybys")
+
+        return flybys
     }
 }
