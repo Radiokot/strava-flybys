@@ -2,6 +2,7 @@ package ua.com.radiokot.flybys
 
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
+import io.javalin.http.staticfiles.Location
 import org.apache.log4j.BasicConfigurator
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
@@ -13,6 +14,8 @@ import ua.com.radiokot.flybys.strava.segments.RealLeaderboardsService
 import ua.com.radiokot.flybys.strava.session.RealStravaSession
 import ua.com.radiokot.flybys.strava.streams.RealStreamsService
 import ua.com.radiokot.flybys.worker.FlybyAnalysisWorker
+import java.text.SimpleDateFormat
+import java.util.*
 
 object Main {
     @JvmStatic
@@ -69,6 +72,7 @@ object Main {
         Javalin
                 .create { config ->
                     config.showJavalinBanner = false
+                    config.addStaticFiles("/static", "/static", Location.CLASSPATH)
                 }
                 .routes {
                     path("api/tasks") {
@@ -78,6 +82,14 @@ object Main {
 
                         get(":id", controller::getById)
                         post(controller::schedule)
+                    }
+
+                    path ("/") {
+                        get { ctx ->
+                            ctx.render("index.html", mapOf(
+                                    "date" to SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Date())
+                            ))
+                        }
                     }
                 }
                 .start(port)

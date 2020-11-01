@@ -1,0 +1,54 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Unofficial Strava Flybys</title>
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <script src="static/js/index.js"></script>
+</head>
+<body>
+<div class="container">
+    <br>
+
+    <h1 class="display-4" style="font-size: 2.5rem">Get hidden Flybys for your ride</h1>
+
+    <hr>
+
+    <p>This service allows you to find out hidden Flybys for your ride from Summit segment
+        leaderboards
+    <ul>
+        <li>Only bike rides</li>
+        <li>Only today rides</li>
+        <li>Only rides with segments</li>
+    </ul>
+
+    <br>
+
+    <form onsubmit="onFormSubmit(); return false;">
+        <fieldset class="form-group row" id="formFieldset">
+            <label for="activityUrl" class="col-xs-3 col-sm-2 col-form-label">Activity URL</label>
+            <div class="col-sx-9 col-sm-8">
+                <input type="url" class="form-control" id="activityUrl"
+                       pattern=".+?strava\.com\/activities\/(\d+?)$"
+                       placeholder="i.e. https://www.strava.com/activities/XXXXXXX"
+                       autocomplete="off">
+            </div>
+
+            <div class="w-100 d-sm-none"><br></div>
+
+            <button type="submit" class="btn btn-warning col-xs-12 col-sm-2">Go</button>
+        </fieldset>
+    </form>
+
+    <div id="errorAlert" class="alert alert-danger" role="alert" style="display: none;">
+    </div>
+
+    <center id="processingHint" style="display: none;">Processing...</center>
+
+    <br>
+
+    <center><small class="text-muted">Now is <span data-th-text="${date}">19:00</span></small>
+    </center>
+</div>
+</body>
+</html>
