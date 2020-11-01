@@ -8,14 +8,14 @@ import org.apache.log4j.Level
 import org.apache.log4j.Logger
 import ua.com.radiokot.flybys.analysis.FlybyAnalysis
 import ua.com.radiokot.flybys.api.FlybyAnalysisTasksApiController
+import ua.com.radiokot.flybys.pages.IndexPageRenderer
+import ua.com.radiokot.flybys.pages.TaskByIdPageRenderer
 import ua.com.radiokot.flybys.strava.activities.RealActivitiesService
 import ua.com.radiokot.flybys.strava.http.HttpClientFactory
 import ua.com.radiokot.flybys.strava.segments.RealLeaderboardsService
 import ua.com.radiokot.flybys.strava.session.RealStravaSession
 import ua.com.radiokot.flybys.strava.streams.RealStreamsService
 import ua.com.radiokot.flybys.worker.FlybyAnalysisWorker
-import java.text.SimpleDateFormat
-import java.util.*
 
 object Main {
     @JvmStatic
@@ -77,20 +77,18 @@ object Main {
                 .routes {
                     path("api/tasks") {
                         val controller = FlybyAnalysisTasksApiController(
-                                flybyAnalysisWorker = flybyAnalysisWorker
+                                flybyAnalysisWorker = flybyAnalysisWorker,
                         )
 
                         get(":id", controller::getById)
                         post(controller::schedule)
                     }
 
-                    path ("/") {
-                        get { ctx ->
-                            ctx.render("index.html", mapOf(
-                                    "date" to SimpleDateFormat("dd MMM yyyy HH:mm:ss").format(Date())
-                            ))
-                        }
-                    }
+
+                    get("/", IndexPageRenderer()::render)
+                    get("/tasks/:id", TaskByIdPageRenderer(
+                            flybyAnalysisWorker = flybyAnalysisWorker,
+                    )::render)
                 }
                 .start(port)
     }

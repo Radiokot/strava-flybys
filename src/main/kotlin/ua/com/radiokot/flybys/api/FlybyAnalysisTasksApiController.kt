@@ -5,6 +5,7 @@ import io.javalin.http.NotFoundResponse
 import ua.com.radiokot.flybys.api.model.ScheduleFlybyTaskRequestBody
 import ua.com.radiokot.flybys.api.model.ScheduleFlybyTaskResponseBody
 import ua.com.radiokot.flybys.api.model.TaskByIdResponseBody
+import ua.com.radiokot.flybys.api.model.TaskStateResponse
 import ua.com.radiokot.flybys.worker.FlybyAnalysisWorker
 
 class FlybyAnalysisTasksApiController(
@@ -14,12 +15,12 @@ class FlybyAnalysisTasksApiController(
         val taskId = ctx.pathParam("id")
 
         val state = flybyAnalysisWorker.getState(taskId)
-                ?: throw NotFoundResponse("Task not found")
+                ?: throw NotFoundResponse("Task $taskId not found")
 
         ctx.status(200)
         ctx.json(TaskByIdResponseBody(
                 id = taskId,
-                state = TaskByIdResponseBody.State.fromActualState(state)
+                state = TaskStateResponse.fromActualState(state)
         ))
     }
 

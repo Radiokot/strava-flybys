@@ -16,7 +16,7 @@ function onFormSubmit() {
         .then(response => {
             processingHint.style.display = 'none'
             formFieldset.removeAttribute('disabled')
-            alert(response.task_id)
+            window.location.href = '/tasks/' + response.task_id
         })
         .catch(error => {
             formFieldset.removeAttribute('disabled')
