@@ -32,9 +32,18 @@ class FlybyAnalysisTasksApiController(
         )
         val body = bodyValidator.get()
 
-        val taskId = flybyAnalysisWorker.schedule(
-                activityId = body.activityId
-        )
+        val currentActiveTask =
+                flybyAnalysisWorker.getTasksByActivityId(
+                        activityId = body.activityId
+                )
+                        .find { !it.state.isFinal }
+
+        // Do not schedule another task for activity
+        // if there is already an active one.
+        val taskId = currentActiveTask?.id
+                ?: flybyAnalysisWorker.schedule(
+                        activityId = body.activityId
+                )
 
         ctx.status(201)
         ctx.json(ScheduleFlybyTaskResponseBody(

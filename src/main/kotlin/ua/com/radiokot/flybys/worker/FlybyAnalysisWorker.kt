@@ -57,6 +57,10 @@ class FlybyAnalysisWorker(
         return tasks[taskId]?.state
     }
 
+    fun getTasksByActivityId(activityId: String): Collection<FlybyAnalysisTask> {
+        return tasks.values.filter { it.activityId == activityId }
+    }
+
     private fun processTask(task: FlybyAnalysisTask) {
         task.state = FlybyAnalysisTask.State.InProgress
 
