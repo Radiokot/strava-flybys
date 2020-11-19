@@ -23,6 +23,9 @@ function displayCurrentState() {
 
 function onCurrentStateUpdated() {
     displayCurrentState()
+    if (currentState == 'done') {
+        window.location.href = `/tasks/${taskId}/map`
+    }
 }
 
 function updateCurrentStateAndScheduleNext() {
