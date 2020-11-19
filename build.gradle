@@ -40,9 +40,6 @@ jar {
 }
 
 shadowJar {
-    minimize {
-        exclude(dependency('org.eclipse.jetty.websocket:.*:.*'))
-    }
     archiveFileName = 'server.jar'
 }
 
