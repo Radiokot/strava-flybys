@@ -1,0 +1,36 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title data-th-text="|${sourceActivityName} Flybys|">Activity Flybys</title>
+    <link rel="stylesheet" href="static/css/bootstrap.min.css" data-th-href="|/static/css/bootstrap.min.css|">
+    <script src="static/js/map.js" data-th-src="|/static/js/map.js|"></script>
+    <style>
+        body, html {
+            padding: 0px;
+            margin: 0px;
+        }
+    </style>
+</head>
+<body>
+<script data-th-inline="javascript">
+    const taskId = /*[[${taskId}]]*/ '0'
+</script>
+<div class="row" style="height: 100%; margin: 0;">
+    <div class="col-12 col-sm-4" style="height: 100%; padding: 25px;">
+        <h4>Found <span data-th-text="${flybysCount}">2</span> Flybys for <span data-th-text="${sourceActivityName}">Morning ride</span></h4>
+
+        <br>
+
+        <ul class="list-group" id="flybysList">
+        </ul>
+    </div>
+
+    <div class="col-12 col-sm-8" id="map" style="height: 100%;"></div>
+</div>
+
+<script data-th-src="|https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&callback=onMapReady&libraries=&v=weekly|" src="https://maps.googleapis.com/maps/api/js?callback=onMapReady&libraries=&v=weekly"
+        defer></script>
+
+</body>
+</html>

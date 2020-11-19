@@ -10,6 +10,7 @@ import ua.com.radiokot.flybys.analysis.FlybyAnalysis
 import ua.com.radiokot.flybys.api.FlybyAnalysisTasksApiController
 import ua.com.radiokot.flybys.pages.IndexPageRenderer
 import ua.com.radiokot.flybys.pages.TaskByIdPageRenderer
+import ua.com.radiokot.flybys.pages.TaskMapByIdPageRenderer
 import ua.com.radiokot.flybys.strava.activities.RealActivitiesService
 import ua.com.radiokot.flybys.strava.http.HttpClientFactory
 import ua.com.radiokot.flybys.strava.segments.RealLeaderboardsService
@@ -35,6 +36,9 @@ object Main {
                 ?: throw IllegalArgumentException("No email env variable specified")
         val password = System.getenv("PASSWORD")
                 ?: throw IllegalArgumentException("No password env variable specified")
+
+        val googleApiKey = System.getenv("GOOGLE_API_KEY")
+                ?: ""
 
         val httpClientFactory = HttpClientFactory(
                 stravaRootUrl = stravaRootUrl,
@@ -86,9 +90,15 @@ object Main {
 
 
                     get("/", IndexPageRenderer()::render)
-                    get("/tasks/:id", TaskByIdPageRenderer(
-                            flybyAnalysisWorker = flybyAnalysisWorker,
-                    )::render)
+                    path("/tasks") {
+                        get(":id", TaskByIdPageRenderer(
+                                flybyAnalysisWorker = flybyAnalysisWorker,
+                        )::render)
+                        get(":id/map", TaskMapByIdPageRenderer(
+                                flybyAnalysisWorker = flybyAnalysisWorker,
+                                googleApiKey = googleApiKey,
+                        )::render)
+                    }
                 }
                 .start(port)
     }

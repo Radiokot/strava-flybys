@@ -28,7 +28,7 @@ function onFormSubmit() {
 }
 
 function submitTask(activityId) {
-    return fetch('api/tasks/', {
+    return fetch('/api/tasks/', {
         method: 'POST',
         headers: {
               'Content-Type': 'application/json'
