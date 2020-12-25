@@ -1,5 +1,5 @@
 function onFormSubmit() {
-    const activityUrlRegex = /.+?strava\.com\/activities\/(\d+?)$/
+    const activityUrlRegex = /.+?strava\.com\/activities\/(\d+?)($|\?.+)/
     const input = document.getElementById('activityUrl').value
     const activityId = input.match(activityUrlRegex)[1]
 
