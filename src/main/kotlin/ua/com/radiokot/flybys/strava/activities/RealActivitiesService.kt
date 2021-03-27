@@ -49,7 +49,7 @@ class RealActivitiesService(
                 }
                 ?: throw IllegalStateException("No matches for start date in activity HTML")
 
-        val athleteJsonRegex = "activityAthlete\\s?=\\s?new Strava\\.Models\\.Athlete\\((.+?)\\)".toRegex()
+        val athleteJsonRegex = "activityAthlete\\s?=\\s?new Strava\\.Models\\.Athlete\\((.+?)\\);".toRegex()
         val athleteJson = athleteJsonRegex.find(rawHtml)
                 ?.groupValues
                 ?.get(1)
