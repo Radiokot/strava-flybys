@@ -18,7 +18,7 @@ object RequestRateLimiter {
      * Suspends current thread for a time required to safely
      * perform Strava request
      */
-    fun awaitForRequest() = synchronized(queue) {
+    fun waitBeforeRequest() = synchronized(queue) {
         val currentLatch = queue.lastOrNull() ?: CountDownLatch(0)
 
         val latchForNext = CountDownLatch(1)

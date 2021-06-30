@@ -7,7 +7,6 @@ import okhttp3.Request
 import okhttp3.internal.closeQuietly
 import ua.com.radiokot.flybys.strava.http.FakeHeaders
 import ua.com.radiokot.flybys.strava.http.RequestRateLimiter
-import ua.com.radiokot.flybys.strava.http.addHeaders
 import ua.com.radiokot.flybys.strava.segments.model.LeaderboardResult
 import ua.com.radiokot.flybys.strava.session.StravaSession
 import java.util.logging.Level
@@ -31,7 +30,7 @@ class RealLeaderboardsService(
                 .addHeaders(FakeHeaders.extraForJsonResponse.toHeaders())
                 .build()
 
-        RequestRateLimiter.awaitForRequest()
+        RequestRateLimiter.waitBeforeRequest()
         val response = httpClient.newCall(request).execute()
 
         val rawJson = objectMapper.readTree(response.body!!.charStream())

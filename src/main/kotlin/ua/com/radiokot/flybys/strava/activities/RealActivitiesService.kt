@@ -8,8 +8,6 @@ import ua.com.radiokot.flybys.strava.activities.model.Activity
 import ua.com.radiokot.flybys.strava.athletes.model.Athlete
 import ua.com.radiokot.flybys.strava.http.FakeHeaders
 import ua.com.radiokot.flybys.strava.http.RequestRateLimiter
-import ua.com.radiokot.flybys.strava.http.addHeaders
-import ua.com.radiokot.flybys.strava.segments.model.SegmentEffort
 import ua.com.radiokot.flybys.strava.session.StravaSession
 import ua.com.radiokot.flybys.strava.streams.StreamsService
 import java.util.logging.Level
@@ -35,7 +33,7 @@ class RealActivitiesService(
                 .addHeaders(FakeHeaders.extraForHtmlResponse.toHeaders())
                 .build()
 
-        RequestRateLimiter.awaitForRequest()
+        RequestRateLimiter.waitBeforeRequest()
         val response = httpClient.newCall(request).execute()
         val rawHtml = response.body!!.string()
 

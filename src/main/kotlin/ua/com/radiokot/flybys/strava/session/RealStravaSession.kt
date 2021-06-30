@@ -8,7 +8,6 @@ import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import ua.com.radiokot.flybys.strava.http.FakeHeaders
 import ua.com.radiokot.flybys.strava.http.RequestRateLimiter
-import ua.com.radiokot.flybys.strava.http.addHeaders
 import java.net.HttpURLConnection
 import java.util.*
 import java.util.logging.Level
@@ -63,7 +62,7 @@ class RealStravaSession(
                 .addHeaders(FakeHeaders.extraForHtmlResponse.toHeaders())
                 .build()
 
-        RequestRateLimiter.awaitForRequest()
+        RequestRateLimiter.waitBeforeRequest()
         val response = httpClient.newCall(request).execute()
         response.body?.closeQuietly()
 
@@ -98,7 +97,7 @@ class RealStravaSession(
                 .addHeaders(FakeHeaders.extraForHtmlResponse.toHeaders())
                 .build()
 
-        RequestRateLimiter.awaitForRequest()
+        RequestRateLimiter.waitBeforeRequest()
         val response = httpClient.newCall(request).execute()
         val rawHtml = response.body!!.string()
 

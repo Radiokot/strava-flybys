@@ -7,7 +7,6 @@ import okhttp3.Request
 import okhttp3.internal.closeQuietly
 import ua.com.radiokot.flybys.strava.http.FakeHeaders
 import ua.com.radiokot.flybys.strava.http.RequestRateLimiter
-import ua.com.radiokot.flybys.strava.http.addHeaders
 import ua.com.radiokot.flybys.strava.session.StravaSession
 import ua.com.radiokot.flybys.strava.streams.exceptions.StreamNotFoundException
 import ua.com.radiokot.flybys.strava.streams.model.LocationTimePoint
@@ -32,7 +31,7 @@ class RealStreamsService(
                 .addHeaders(FakeHeaders.extraForJsonResponse.toHeaders())
                 .build()
 
-        RequestRateLimiter.awaitForRequest()
+        RequestRateLimiter.waitBeforeRequest()
         val response = httpClient.newCall(request).execute()
 
         if (response.code == HttpURLConnection.HTTP_NOT_FOUND) {

@@ -9,7 +9,7 @@ class RequestRateLimiterTest {
         RequestRateLimiter.reset()
 
         val startTime = System.currentTimeMillis()
-        RequestRateLimiter.awaitForRequest()
+        RequestRateLimiter.waitBeforeRequest()
         val elapsed = (System.currentTimeMillis() - startTime)
 
         Assert.assertTrue(
@@ -25,7 +25,7 @@ class RequestRateLimiterTest {
         val startTime = System.currentTimeMillis()
 
         val count = 5
-        repeat(count) { RequestRateLimiter.awaitForRequest() }
+        repeat(count) { RequestRateLimiter.waitBeforeRequest() }
 
         val elapsed = (System.currentTimeMillis() - startTime).toDouble()
 
