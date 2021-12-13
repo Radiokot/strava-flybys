@@ -3,9 +3,7 @@ package ua.com.radiokot.flybys
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.staticfiles.Location
-import org.apache.log4j.BasicConfigurator
-import org.apache.log4j.Level
-import org.apache.log4j.Logger
+import sun.misc.Signal
 import ua.com.radiokot.flybys.analysis.FlybyAnalysis
 import ua.com.radiokot.flybys.api.FlybyAnalysisTasksApiController
 import ua.com.radiokot.flybys.pages.IndexPageRenderer
@@ -18,89 +16,100 @@ import ua.com.radiokot.flybys.strava.session.RealStravaSession
 import ua.com.radiokot.flybys.strava.streams.RealStreamsService
 import ua.com.radiokot.flybys.worker.FlybyAnalysisWorker
 
+
 object Main {
     @JvmStatic
     fun main(args: Array<String>) {
-        BasicConfigurator.configure()
-        Logger.getRootLogger().level = Level.INFO
-
         val port = System.getenv("PORT")?.toIntOrNull()
-                ?: DEFAULT_PORT
+            ?: DEFAULT_PORT
 
         val stravaRootUrl = System.getenv("STRAVA_ROOT_URL")
-                ?: DEFAULT_STRAVA_ROOT_URL
+            ?: DEFAULT_STRAVA_ROOT_URL
         val stravaHostname = System.getenv("STRAVA_HOSTNAME")
-                ?: DEFAULT_STRAVA_HOSTNAME
+            ?: DEFAULT_STRAVA_HOSTNAME
 
         val email = System.getenv("EMAIL")
-                ?: throw IllegalArgumentException("No email env variable specified")
+            ?: throw IllegalArgumentException("No email env variable specified")
         val password = System.getenv("PASSWORD")
-                ?: throw IllegalArgumentException("No password env variable specified")
+            ?: throw IllegalArgumentException("No password env variable specified")
 
         val googleApiKey = System.getenv("GOOGLE_API_KEY")
-                ?: ""
+            ?: ""
 
         val httpClientFactory = HttpClientFactory(
-                stravaRootUrl = stravaRootUrl,
-                stravaHostname = stravaHostname,
-                withLogs = true
+            stravaRootUrl = stravaRootUrl,
+            stravaHostname = stravaHostname,
+            withLogs = true
         )
         val stravaSession = RealStravaSession(
-                email = email,
-                password = password,
-                stravaRootUrl = stravaRootUrl,
-                httpClient = httpClientFactory.httpClient
+            email = email,
+            password = password,
+            stravaRootUrl = stravaRootUrl,
+            httpClient = httpClientFactory.httpClient
         )
         val streamsService = RealStreamsService(
-                session = stravaSession,
-                httpClient = httpClientFactory.httpClient
+            session = stravaSession,
+            httpClient = httpClientFactory.httpClient
         )
         val activitiesService = RealActivitiesService(
-                session = stravaSession,
-                httpClient = httpClientFactory.httpClient,
-                streamsService = streamsService
+            session = stravaSession,
+            httpClient = httpClientFactory.httpClient,
+            streamsService = streamsService
         )
         val leaderboardsService = RealLeaderboardsService(
-                session = stravaSession,
-                httpClient = httpClientFactory.httpClient
+            session = stravaSession,
+            httpClient = httpClientFactory.httpClient
         )
         val flybyAnalysis = FlybyAnalysis(
-                activitiesService = activitiesService,
-                leaderboardsService = leaderboardsService
+            activitiesService = activitiesService,
+            leaderboardsService = leaderboardsService
         )
         val flybyAnalysisWorker = FlybyAnalysisWorker(
-                activitiesService = activitiesService,
-                flybyAnalysis = flybyAnalysis
+            activitiesService = activitiesService,
+            flybyAnalysis = flybyAnalysis
         )
 
         Javalin
-                .create { config ->
-                    config.showJavalinBanner = false
-                    config.addStaticFiles("/static", "/static", Location.CLASSPATH)
+            .create { config ->
+                config.showJavalinBanner = false
+                config.addStaticFiles("/static", "/static", Location.CLASSPATH)
+            }
+            .routes {
+                path("api/tasks") {
+                    val controller = FlybyAnalysisTasksApiController(
+                        flybyAnalysisWorker = flybyAnalysisWorker,
+                    )
+
+                    get(":id", controller::getById)
+                    post(controller::schedule)
                 }
-                .routes {
-                    path("api/tasks") {
-                        val controller = FlybyAnalysisTasksApiController(
-                                flybyAnalysisWorker = flybyAnalysisWorker,
-                        )
-
-                        get(":id", controller::getById)
-                        post(controller::schedule)
-                    }
 
 
-                    get("/", IndexPageRenderer()::render)
-                    path("/tasks") {
-                        get(":id", TaskByIdPageRenderer(
-                                flybyAnalysisWorker = flybyAnalysisWorker,
-                        )::render)
-                        get(":id/map", TaskMapByIdPageRenderer(
-                                flybyAnalysisWorker = flybyAnalysisWorker,
-                                googleApiKey = googleApiKey,
-                        )::render)
+                get("/", IndexPageRenderer()::render)
+                path("/tasks") {
+                    get(
+                        ":id", TaskByIdPageRenderer(
+                            flybyAnalysisWorker = flybyAnalysisWorker,
+                        )::render
+                    )
+                    get(
+                        ":id/map", TaskMapByIdPageRenderer(
+                            flybyAnalysisWorker = flybyAnalysisWorker,
+                            googleApiKey = googleApiKey,
+                        )::render
+                    )
+                }
+            }
+            .start(port)
+            .apply {
+                // Gracefully stop on SIGINT and SIGTERM.
+                listOf("INT", "TERM").forEach {
+                    Signal.handle(Signal(it)) {
+                        stop()
+                        flybyAnalysisWorker.shutdownNow()
                     }
                 }
-                .start(port)
+            }
     }
 
     private const val DEFAULT_PORT = 8191

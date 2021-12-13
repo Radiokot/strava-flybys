@@ -1,6 +1,7 @@
 package ua.com.radiokot.flybys.strava.segments
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import mu.KotlinLogging
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -14,22 +15,27 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 class RealLeaderboardsService(
-        private val session: StravaSession,
-        private val httpClient: OkHttpClient,
+    private val session: StravaSession,
+    private val httpClient: OkHttpClient,
 ) : LeaderboardsService {
     private val objectMapper = ObjectMapper()
+    private val logger = KotlinLogging.logger("RealLeaderboardsService")
 
     override fun getTodaySegmentLeaderboard(segmentId: String): List<LeaderboardResult> {
-        Logger.getGlobal().log(Level.INFO, "Loading $segmentId today leaderboard...")
+        logger.debug {
+            "Loading $segmentId today leaderboard..."
+        }
 
         val nowTime = System.currentTimeMillis()
         val request = Request.Builder()
-                .get()
-                .url("${session.stravaRootUrl}/segments/$segmentId/leaderboard" +
-                        "?raw=true&page=1&per_page=50&filter=overall&date_range=today&_=$nowTime")
-                .addHeaders(session.getHeaders().toHeaders())
-                .addHeaders(FakeHeaders.extraForJsonResponse.toHeaders())
-                .build()
+            .get()
+            .url(
+                "${session.stravaRootUrl}/segments/$segmentId/leaderboard" +
+                        "?raw=true&page=1&per_page=50&filter=overall&date_range=today&_=$nowTime"
+            )
+            .addHeaders(session.getHeaders().toHeaders())
+            .addHeaders(FakeHeaders.extraForJsonResponse.toHeaders())
+            .build()
 
         RequestRateLimiter.waitBeforeRequest()
         val response = httpClient.newCall(request).execute()
@@ -39,6 +45,6 @@ class RealLeaderboardsService(
         val topResults = rawJson["top_results"]
 
         return topResults
-                .map(::LeaderboardResult)
+            .map(::LeaderboardResult)
     }
 }

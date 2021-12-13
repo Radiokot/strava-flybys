@@ -12,7 +12,12 @@ object RequestRateLimiter {
     const val REQUEST_TIMEOUT_MS = 1400L
 
     private val queue = mutableListOf<CountDownLatch>()
-    private val executor = Executors.newSingleThreadScheduledExecutor()
+    private val executor = Executors.newSingleThreadScheduledExecutor {
+        Thread(it).apply {
+            name = "RequestRateLimiter"
+            isDaemon = true
+        }
+    }
 
     /**
      * Suspends current thread for a time required to safely

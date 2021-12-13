@@ -1,5 +1,6 @@
 package ua.com.radiokot.flybys.strava.session
 
+import mu.KotlinLogging
 import okhttp3.FormBody
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
@@ -15,11 +16,13 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 class RealStravaSession(
-        override val email: String,
-        private val password: String,
-        override val stravaRootUrl: String,
-        private val httpClient: OkHttpClient,
+    override val email: String,
+    private val password: String,
+    override val stravaRootUrl: String,
+    private val httpClient: OkHttpClient,
 ) : StravaSession {
+    private val logger = KotlinLogging.logger("RealStravaSession")
+
     private var currentHeaders: Map<String, String>? = null
     private var currentHeadersObtainedAt: Date = Date(0)
 
@@ -33,35 +36,36 @@ class RealStravaSession(
             currentHeaders
         else
             getNewHeaders()
-                    .also { newHeaders ->
-                        this.currentHeaders = newHeaders
-                        currentHeadersObtainedAt = Date()
-                    }
+                .also { newHeaders ->
+                    this.currentHeaders = newHeaders
+                    currentHeadersObtainedAt = Date()
+                }
     }
 
     private fun getNewHeaders(): Map<String, String> {
         val loginParams = getLoginParams()
 
         val headers = mapOf(
-                "content-type" to "application/x-www-form-urlencoded",
-                "cookie" to loginParams.cookie,
-                "referer" to "$stravaRootUrl/login"
+            "content-type" to "application/x-www-form-urlencoded",
+            "cookie" to loginParams.cookie,
+            "referer" to "$stravaRootUrl/login"
         )
 
-        Logger.getGlobal().log(Level.INFO, "Performing login...")
+        logger.info { "Performing login..." }
 
         val request = Request.Builder()
-                .post(FormBody.Builder(Charsets.UTF_8)
-                        .add("authenticity_token", loginParams.authenticityToken)
-                        .add("plan", "")
-                        .add("email", email)
-                        .add("password", password)
-                        .build()
-                )
-                .url("$stravaRootUrl/session")
-                .addHeaders(headers.toHeaders())
-                .addHeaders(FakeHeaders.extraForHtmlResponse.toHeaders())
-                .build()
+            .post(
+                FormBody.Builder(Charsets.UTF_8)
+                    .add("authenticity_token", loginParams.authenticityToken)
+                    .add("plan", "")
+                    .add("email", email)
+                    .add("password", password)
+                    .build()
+            )
+            .url("$stravaRootUrl/session")
+            .addHeaders(headers.toHeaders())
+            .addHeaders(FakeHeaders.extraForHtmlResponse.toHeaders())
+            .build()
 
         RequestRateLimiter.waitBeforeRequest()
         val response = httpClient.newCall(request).execute()
@@ -80,23 +84,23 @@ class RealStravaSession(
         val cookie = getCookieContentFromResponse(response)
 
         return mapOf(
-                "cookie" to cookie
+            "cookie" to cookie
         )
     }
 
     data class LoginParams(
-            val cookie: String,
-            val authenticityToken: String,
+        val cookie: String,
+        val authenticityToken: String,
     )
 
     private fun getLoginParams(): LoginParams {
-        Logger.getGlobal().log(Level.INFO, "Obtaining login params...")
+        logger.debug { "Obtaining login params..." }
 
         val request = Request.Builder()
-                .get()
-                .url("$stravaRootUrl/login")
-                .addHeaders(FakeHeaders.extraForHtmlResponse.toHeaders())
-                .build()
+            .get()
+            .url("$stravaRootUrl/login")
+            .addHeaders(FakeHeaders.extraForHtmlResponse.toHeaders())
+            .build()
 
         RequestRateLimiter.waitBeforeRequest()
         val response = httpClient.newCall(request).execute()
@@ -104,20 +108,20 @@ class RealStravaSession(
 
         val crsfTokenRegex = "<meta name=\"csrf-token\" content=\"(.+?)\"".toRegex()
         val crsfToken = crsfTokenRegex
-                .find(rawHtml)
-                ?.groupValues
-                ?.get(1)
-                ?: throw IllegalStateException("No matches for crsf-token in login HTML")
+            .find(rawHtml)
+            ?.groupValues
+            ?.get(1)
+            ?: throw IllegalStateException("No matches for crsf-token in login HTML")
 
         return LoginParams(
-                cookie = getCookieContentFromResponse(response),
-                authenticityToken = crsfToken
+            cookie = getCookieContentFromResponse(response),
+            authenticityToken = crsfToken
         )
     }
 
     private fun getCookieContentFromResponse(response: Response): String {
         val value = response.header("set-cookie")
-                ?: throw IllegalStateException("There is no cookies in response header")
+            ?: throw IllegalStateException("There is no cookies in response header")
 
         return value.split(';')[0] + "; "
     }

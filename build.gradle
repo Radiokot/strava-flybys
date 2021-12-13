@@ -21,13 +21,19 @@ repositories {
 
 dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+
     implementation 'io.javalin:javalin:3.11.0'
-    implementation 'org.slf4j:slf4j-log4j12:1.7.29'
+    implementation 'org.thymeleaf:thymeleaf:3.0.11.RELEASE'
+
+    implementation 'org.slf4j:slf4j-log4j12:1.7.32'
+    implementation 'io.github.microutils:kotlin-logging-jvm:2.0.11'
+
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.10.3'
+
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.0'
-    implementation 'org.thymeleaf:thymeleaf:3.0.11.RELEASE'
+
     testImplementation 'junit:junit:4.12'
 }
 

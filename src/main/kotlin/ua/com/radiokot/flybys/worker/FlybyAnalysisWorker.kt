@@ -1,20 +1,21 @@
 package ua.com.radiokot.flybys.worker
 
+import mu.KotlinLogging
 import ua.com.radiokot.flybys.analysis.FlybyAnalysis
 import ua.com.radiokot.flybys.strava.activities.ActivitiesService
 import ua.com.radiokot.flybys.worker.model.FlybyAnalysisTask
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.logging.Level
-import java.util.logging.Logger
 
 /**
  * Processes Flyby analysis tasks and manages their states.
  */
 class FlybyAnalysisWorker(
-        private val activitiesService: ActivitiesService,
-        private val flybyAnalysis: FlybyAnalysis,
+    private val activitiesService: ActivitiesService,
+    private val flybyAnalysis: FlybyAnalysis,
 ) {
+    private val logger = KotlinLogging.logger("FlybyAnalysisWorker")
+
     private val executor = Executors.newSingleThreadExecutor()
     private val cleanUpExecutor = Executors.newSingleThreadScheduledExecutor()
 
@@ -22,13 +23,13 @@ class FlybyAnalysisWorker(
 
     init {
         cleanUpExecutor.scheduleAtFixedRate(
-                this::cleanUpFinalizedTasks,
-                1,
-                1,
-                TimeUnit.HOURS
+            this::cleanUpFinalizedTasks,
+            1,
+            1,
+            TimeUnit.HOURS
         )
 
-        Logger.getGlobal().log(Level.INFO, "Worker is ready")
+        logger.debug { "Worker is ready" }
     }
 
     /**
@@ -38,12 +39,12 @@ class FlybyAnalysisWorker(
      */
     fun schedule(activityId: String): String {
         val task = FlybyAnalysisTask(
-                activityId = activityId
+            activityId = activityId
         )
 
         tasks[task.id] = task
 
-        Logger.getGlobal().log(Level.INFO, "Scheduled ${task.id}, now ${tasks.size} in queue")
+        logger.info { "Scheduled ${task.id}, now ${tasks.size} in queue" }
 
         executor.submit { processTask(task) }
 
@@ -64,34 +65,40 @@ class FlybyAnalysisWorker(
     private fun processTask(task: FlybyAnalysisTask) {
         task.state = FlybyAnalysisTask.State.InProgress
 
-        Logger.getGlobal().log(Level.INFO, "Task ${task.id} is in progress")
+        logger.debug { "Task ${task.id} is in progress" }
 
         try {
             val activity = activitiesService.getById(task.activityId)
             val flybys = flybyAnalysis.getActivityFlybys(activity)
             task.state = FlybyAnalysisTask.State.Done(
-                    sourceActivity = activity,
-                    flybys = flybys
+                sourceActivity = activity,
+                flybys = flybys
             )
 
-            Logger.getGlobal().log(Level.INFO, "Task ${task.id} is done")
+            logger.info { "Task ${task.id} is done" }
         } catch (e: Exception) {
             task.state = FlybyAnalysisTask.State.Failed(e)
-            Logger.getGlobal().log(Level.INFO, "Task ${task.id} is failed: $e")
+            logger.warn { "Task ${task.id} is failed: $e" }
         }
     }
 
     private fun cleanUpFinalizedTasks() {
         val toRemove = tasks
-                .filterValues { task ->
-                    task.state.isFinal &&
-                            System.currentTimeMillis() / 1000 - task.createdAt > FINALIZED_TASK_STORAGE_DURATION_S
-                }
+            .filterValues { task ->
+                task.state.isFinal &&
+                        System.currentTimeMillis() / 1000 - task.createdAt > FINALIZED_TASK_STORAGE_DURATION_S
+            }
 
         if (toRemove.isEmpty()) {
             toRemove.keys.forEach(tasks::remove)
-            Logger.getGlobal().log(Level.INFO, "Cleaned up ${toRemove.size} finalized tasks")
+            logger.debug { "Cleaned up ${toRemove.size} finalized tasks" }
         }
+    }
+
+    fun shutdownNow() {
+        logger.debug { "Shutdown now" }
+        executor.shutdownNow()
+        cleanUpExecutor.shutdownNow()
     }
 
     private companion object {
